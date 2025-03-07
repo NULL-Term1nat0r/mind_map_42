@@ -1,0 +1,6 @@
+.mind-map-canvas {
+    display: block;
+    width: 100%; /* Fill parent width */
+    height: 100%; /* Fill parent height */
+    color: #000000
+}
