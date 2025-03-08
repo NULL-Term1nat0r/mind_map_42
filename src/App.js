@@ -1,34 +1,29 @@
-import React, { useState } from 'react';
-import Sidebar from './components/sidebar/sidebar';
-import Header from './components/head_bar/head_bar'; // Import the Header component
-import MindMap from './components/mind_map/mind_map'; // Import the MindMap component
-import Toolbar from './components/tool_bar/tool_bar'; // Import the Toolbar component
-import './App.css';
+import React, { useState } from "react"; // Import useState
+import Header from "./components/header/header";
+import Sidebar from "./components/sidebar/sidebar";
+import Console from "./components/console/console";
+import MainArea from "./components/main_area/main_area";
+import "./App.css";
 
 function App() {
-    const [activeButton, setActiveButton] = useState('Home');
-    const buttons = ['Home', 'About', 'Contact', 'Settings'];
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isConsoleVisible, setIsConsoleVisible] = useState(true);
+  const [isMainAreaVisible, setIsMainAreaVisible] = useState(true);
 
-    const handleButtonClick = (buttonName) => {
-        setActiveButton(buttonName);
-        console.log(`${buttonName} button clicked!`);
-    };
-
-    return (
-        <div className="app-container">
-            {/* Header component */}
-            <Header title="My React App" />
-
-            {/* Sidebar and main content */}
-            <div className="content-container">
-                <Sidebar buttons={buttons} onButtonClick={handleButtonClick} />
-                <div className="main-content">
-                    <MindMap /> {/* Use the MindMap component */}
-                    <Toolbar /> {/* Use the Toolbar component */}
-                </div>
-            </div>
-        </div>
-    );
+  return (
+    <div className="app">
+      <Header
+        onOpenSidebar={() => setIsSidebarVisible(true)}
+        onOpenConsole={() => setIsConsoleVisible(true)}
+        onOpenMainArea={() => setIsMainAreaVisible(true)}
+      />
+      <div className="app-content">
+        {isSidebarVisible && <Sidebar onClose={() => setIsSidebarVisible(false)} />}
+        {isMainAreaVisible && <MainArea onClose={() => setIsMainAreaVisible(false)} />}
+      </div>
+      {isConsoleVisible && <Console onClose={() => setIsConsoleVisible(false)} />}
+    </div>
+  );
 }
 
 export default App;

@@ -1,23 +1,27 @@
-/* src/components/Sidebar.css */
-/* src/components/sidebar/Sidebar.css */
+/* Sidebar container */
 .sidebar {
-  width: 200px;
-  height: 100vh;
-  background-color: #333;
-  padding: 10px;
+    width: 300px;
+    height: 100%;
+    background-color: #f0f0f0;
+    border-right: 1px solid #ccc;
+    position: relative;
 }
 
-.sidebar button {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  margin: 5px 0;
-  background-color: #555;
-  color: #fff;
-  border: none;
-  cursor: pointer;
+/* Properly position the resize handle on the right side */
+.custom-resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 50px; /* Only cover the middle area */
+    top: 50%; /* Move to the middle */
+    /* transform: translateY(-50%); */
+    right: 0px; /* Align with the right border */
+    cursor: col-resize; /* Resize cursor */
+    background: #888; /* Dark gray */
+    opacity: 0.5;
+    transition: opacity 0.2s ease-in-out;
+    border-radius: 5px 0 0 5px; /* Round edges */
 }
 
-.sidebar button:hover {
-  background-color: #777;
+.custom-resize-handle:hover {
+    opacity: 1; /* Fully visible when hovered */
 }

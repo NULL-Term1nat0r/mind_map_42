@@ -1,0 +1,27 @@
+.console {
+    width: 100%;
+    height: 200px;
+    background-color: #f0f0f0;
+    border-top: 1px solid #ccc;
+    position: relative; /* Ensure the parent is positioned relative */
+  }
+  
+  .custom-resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 50px; /* Middle section */
+    top: 50%;
+    transform: translateY(-50%);
+    top: 0px;
+    cursor: col-resize;
+    background: #888;
+    opacity: 0.5;
+    transition: opacity 0.2s ease-in-out;
+    border-radius: 5px 0 0 5px;
+}
+
+.custom-resize-handle:hover {
+    opacity: 1;
+}
+
+

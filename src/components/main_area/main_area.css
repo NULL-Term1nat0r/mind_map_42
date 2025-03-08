@@ -1,0 +1,26 @@
+.main-area {
+    flex: 1;
+    background-color: #fff;
+    overflow: hidden;
+  }
+  
+  .main-area-header {
+    padding: 8px;
+    background-color: #ddd;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #888;
+  }
+  
+  .close-button:hover {
+    color: #000;
+  }

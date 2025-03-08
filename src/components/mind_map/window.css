@@ -1,0 +1,35 @@
+.window {
+    position: absolute;
+    border: 2px solid #ccc;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+  
+  .window-header {
+    padding: 8px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+    cursor: move; /* Indicate that the header is draggable */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #888;
+  }
+  
+  .close-button:hover {
+    color: #000;
+  }
+  
+  .mind-map-canvas {
+    width: 100%;
+    height: calc(100% - 40px); /* Subtract header height */
+    background-color: #fff; /* Canvas background */
+  }
