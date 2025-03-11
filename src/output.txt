@@ -1,0 +1,578 @@
+i want to be able to draw lines between circles. they should be connected on the circle outline. the direction of the line should from center point to center point. when i move the circle the line still sticks to the other circle and there fore gets longer. i want to be able to connect as many circles with another circle how i want
+i also dont wanna nay changes made to to app.js
+here are my files for context:
+
+title tool_bar.js
+import React, { useState, useRef, useEffect } from "react";
+import "./tool_bar.css";
+
+function ToolBar({ onClose }) {
+  const toolbarRef = useRef(null);
+  const isResizing = useRef(false);
+  const [width, setWidth] = useState(300);
+
+  // Start resizing
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    isResizing.current = true;
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  // Perform resizing
+  const handleMouseMove = (e) => {
+    if (!isResizing.current) return;
+    const windowWidth = window.innerWidth;
+    const newWidth = windowWidth - e.clientX;
+    if (newWidth >= 150 && newWidth <= 600) {
+      setWidth(newWidth);
+    }
+  };
+
+  // End resizing
+  const handleMouseUp = () => {
+    isResizing.current = false;
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+
+  useEffect(() => {
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={toolbarRef}
+      className="toolbar"
+      style={{ width: `${width}px` }}
+    >
+      <div
+        className="resize-handle-west"
+        onMouseDown={handleMouseDown}
+      />
+      <div className="toolbar-handle">
+        Toolbar
+        <button className="close-button" onClick={onClose}>
+          ×
+        </button>
+      </div>
+      <div className="toolbar-content">
+        <p>Toolbar Content</p>
+      </div>
+    </div>
+  );
+}
+
+export default ToolBar;
+
+
+title header.js
+import React from "react";
+import "./header.css";
+
+function Header({ onOpenSidebar, onOpenConsole, onOpenMainArea,  onOpenToolBar}) {
+    return (
+      <div className="header">
+        <span>My Mind Map App</span>
+        <div>
+          <button onClick={onOpenSidebar}>Open Sidebar</button>
+          <button onClick={onOpenConsole}>Open Console</button>
+          <button onClick={onOpenMainArea}>Open Main Area</button>
+          <button onClick={onOpenToolBar}>Open Toolbar</button>
+        </div>
+      </div>
+    );
+  }
+  
+  export default Header;
+
+title console.js
+import React, { useState, useRef, useEffect } from "react";
+import Terminal from "./terminal/terminal"; // Import Terminal component
+import "./console.css";
+
+function Console({ onClose }) {
+  const consoleRef = useRef(null);
+  const isResizing = useRef(false);
+  const [height, setHeight] = useState(200);
+
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    isResizing.current = true;
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isResizing.current) return;
+    const windowHeight = window.innerHeight;
+    const newHeight = windowHeight - e.clientY;
+    if (newHeight >= 100 && newHeight <= 600) {
+      setHeight(newHeight);
+    }
+  };
+
+  const handleMouseUp = () => {
+    isResizing.current = false;
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+
+  useEffect(() => {
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  return (
+    <div ref={consoleRef} className="console" style={{ height: `${height}px` }}>
+      <div className="resize-handle-north" onMouseDown={handleMouseDown} />
+      <div className="console-handle">
+        Console
+        <button className="close-button" onClick={onClose}>
+          ×
+        </button>
+      </div>
+      <div className="console-content">
+        <Terminal /> {/* Terminal component inside console */}
+      </div>
+    </div>
+  );
+}
+
+export default Console;
+
+
+title terminal.js
+import React, { useState, useRef, useEffect } from "react";
+import EventBus from "../../../event_bus/event_bus"; // adjust path as needed
+import "./terminal.css";
+
+function Terminal() {
+  const [input, setInput] = useState("");
+  const [history, setHistory] = useState([]);
+  const inputRef = useRef(null);
+  const outputRef = useRef(null); // Ref for the output container
+
+  // Focus the input field when the terminal is clicked
+  const handleTerminalClick = () => {
+    inputRef.current?.focus();
+  };
+
+  // Handle command input
+  const handleCommand = () => {
+    if (!input.trim()) return;
+
+    let output = "";
+
+    if (input === "help") {
+      output = "Available commands: help, clear, echo [text], draw circle [x] [y] [radius]";
+    } else if (input.startsWith("echo ")) {
+      output = input.slice(5);
+    } else if (input === "clear") {
+      setHistory([]);
+      setInput("");
+      return;
+    } else if (input.startsWith("draw circle")) {
+      // Trim the input and split by one or more spaces
+      const parts = input.trim().split(/\s+/).slice(2); // Get everything after "draw circle"
+      
+      // Ensure we have the correct number of parameters
+      if (parts.length === 3) {
+        const [x, y, radius] = parts.map(Number);
+        if (!isNaN(x) && !isNaN(y) && !isNaN(radius)) {
+          EventBus.emit("drawCircle", { x, y, radius });
+          output = `Drawing circle at (${x}, ${y}) with radius ${radius}...`;
+        } else {
+          output = "Invalid parameters. Please provide valid numbers for x, y, and radius.";
+        }
+      } else {
+        output = "Invalid command format. Use: draw circle [x] [y] [radius]";
+      }
+    } else {
+      output = `Unknown command: ${input}`;
+    }
+
+    setHistory(prev => [...prev, { command: input, output }]);
+    setInput("");
+  };
+
+  // Handle Enter key press
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleCommand();
+    }
+  };
+
+  // Focus the input field when the component mounts or history updates
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [history]);
+
+  // Automatically scroll to the bottom when history updates
+  useEffect(() => {
+    if (outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
+  }, [history]);
+
+  return (
+    <div className="terminal" onClick={handleTerminalClick}>
+      <div className="terminal-output" ref={outputRef}>
+        {history.map((entry, index) => (
+          <div key={index} className="terminal-entry">
+            <span className="terminal-command">{"$ " + entry.command}</span>
+            <span className="terminal-output-text">{entry.output}</span>
+          </div>
+        ))}
+      </div>
+      <div className="terminal-input">
+        <span className="terminal-prompt">$</span>
+        <input
+          ref={inputRef}
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="terminal-textbox"
+        />
+      </div>
+    </div>
+  );
+}
+
+export default Terminal;
+
+title sidebar.js
+import React, { useState, useRef, useEffect } from "react";
+import "./sidebar.css";
+
+function Sidebar({ onClose }) {
+  const sidebarRef = useRef(null);
+  const isResizing = useRef(false);
+  const [width, setWidth] = useState(300);
+
+  // Mouse down on handle
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    isResizing.current = true;
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  // Mouse move => resize
+  const handleMouseMove = (e) => {
+    if (!isResizing.current) return;
+    const newWidth = e.clientX;
+    if (newWidth >= 150 && newWidth <= 1200) {
+      setWidth(newWidth);
+    }
+  };
+
+  // Mouse up => stop resizing
+  const handleMouseUp = () => {
+    isResizing.current = false;
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+
+  // Clean up listeners on unmount
+  useEffect(() => {
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={sidebarRef}
+      className="sidebar"
+      style={{ width: `${width}px` }}
+    >
+      <div className="sidebar-handle">
+        Sidebar
+        <button className="close-button" onClick={onClose}>
+          ×
+        </button>
+      </div>
+      <div className="sidebar-content">
+        <p>Sidebar Content</p>
+      </div>
+      <div
+        className="resize-handle"
+        onMouseDown={handleMouseDown}
+      />
+    </div>
+  );
+}
+
+export default Sidebar;
+
+
+title main_area.js
+// main_area.js
+import React, { useState } from "react";
+import MindMap from "../mind_map/mind_map";
+import "./main_area.css";
+
+function MainArea({ onClose }) {
+  const [mode, setMode] = useState("circle"); // Default mode is "circle"
+
+  return (
+    <div className="main-area">
+      <div className="main-area-header">
+        Main Area
+        <button className="close-button" onClick={onClose}>
+          ×
+        </button>
+      </div>
+      <MindMap mode={mode} onSetMode={setMode} />
+    </div>
+  );
+}
+
+export default MainArea;
+
+title mind_map.js
+import { useRef, useEffect, useState } from "react";
+import { Resizable } from "react-resizable";
+import Draggable from "react-draggable";
+import EventBus from "../../event_bus/event_bus"; // adjust path as needed
+import "react-resizable/css/styles.css";
+import "./mind_map.css";
+
+function MindMapWindow() {
+  const canvasRef = useRef(null);
+  const draggableRef = useRef(null);
+  const [windowSize, setWindowSize] = useState({ width: 500, height: 500 });
+  const [isOpen, setIsOpen] = useState(true);
+  const [circles, setCircles] = useState([]);
+  const [selectedCircle, setSelectedCircle] = useState(null);
+  const [isDraggingCircle, setIsDraggingCircle] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [initialMousePosition, setInitialMousePosition] = useState({ x: 0, y: 0 });
+  const [initialPanOffset, setInitialPanOffset] = useState({ x: 0, y: 0 });
+  const [zoomLevel, setZoomLevel] = useState(1); // Track the zoom level
+
+  const panningSpeed = 1;
+
+  // Function to draw a circle
+  const drawCircle = (ctx, { x, y, radius }, isSelected = false) => {
+    ctx.fillStyle = isSelected ? "rgba(255, 0, 0, 0.8)" : "rgba(255, 0, 0, 0.7)";
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2); // Draw the circle at its original position
+    ctx.fill();
+  };
+
+  // Function to redraw all circles
+  const redrawCircles = (ctx) => {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // Clear the canvas
+    ctx.save();
+    ctx.translate(panOffset.x, panOffset.y); // Apply pan offset
+    ctx.scale(zoomLevel, zoomLevel); // Apply zoom level
+    circles.forEach((circle, index) => {
+      drawCircle(ctx, circle, index === selectedCircle); // Draw each circle
+    });
+    ctx.restore();
+  };
+
+  // Handle drawing new circles
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    const handleDrawCircle = (data) => {
+      setCircles((prevCircles) => [...prevCircles, data]); // Add new circle to state
+    };
+
+    EventBus.subscribe("drawCircle", handleDrawCircle);
+
+    return () => {
+      EventBus.unsubscribe("drawCircle", handleDrawCircle);
+    };
+  }, [isOpen]);
+
+  // Redraw circles when windowSize, circles, selectedCircle, panOffset, or zoomLevel changes
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    redrawCircles(ctx);
+  }, [windowSize, circles, selectedCircle, panOffset, zoomLevel, isOpen]);
+
+  // Handle mouse down to select a circle or start panning
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return; // Only handle left mouse button
+
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = (e.clientX - rect.left - panOffset.x) / zoomLevel; // Adjust for zoom and pan
+    const mouseY = (e.clientY - rect.top - panOffset.y) / zoomLevel; // Adjust for zoom and pan
+
+    // Check if the mouse is inside any circle
+    const clickedCircleIndex = circles.findIndex(
+      (circle) =>
+        Math.sqrt((mouseX - circle.x) ** 2 + (mouseY - circle.y) ** 2) <= circle.radius
+    );
+
+    if (clickedCircleIndex !== -1) {
+      setSelectedCircle(clickedCircleIndex); // Select the circle
+      setIsDraggingCircle(true); // Start dragging the circle
+    } else {
+      setIsPanning(true); // Start panning
+      setInitialMousePosition({ x: e.clientX, y: e.clientY }); // Record the initial mouse position
+      setInitialPanOffset({ x: panOffset.x, y: panOffset.y }); // Record the initial pan offset
+    }
+  };
+
+  // Handle mouse move to drag the selected circle or pan the canvas
+  const handleMouseMove = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+
+    if (isDraggingCircle && selectedCircle !== null) {
+      // Drag the selected circle
+      const mouseX = (e.clientX - rect.left - panOffset.x) / zoomLevel; // Adjust for zoom and pan
+      const mouseY = (e.clientY - rect.top - panOffset.y) / zoomLevel; // Adjust for zoom and pan
+
+      setCircles((prevCircles) =>
+        prevCircles.map((circle, index) =>
+          index === selectedCircle ? { ...circle, x: mouseX, y: mouseY } : circle
+        )
+      );
+    } else if (isPanning) {
+      // Pan the canvas
+      const deltaX = (e.clientX - initialMousePosition.x) * panningSpeed; // Calculate delta relative to initial position
+      const deltaY = (e.clientY - initialMousePosition.y) * panningSpeed; // Calculate delta relative to initial position
+
+      // Apply the delta to the initial pan offset
+      setPanOffset({
+        x: initialPanOffset.x + deltaX,
+        y: initialPanOffset.y + deltaY,
+      });
+    }
+  };
+
+  // Handle mouse up to stop dragging or panning
+  const handleMouseUp = () => {
+    setIsDraggingCircle(false);
+    setIsPanning(false);
+  };
+
+  // Handle wheel event to adjust zoom level
+  const handleWheel = (e) => {
+    e.preventDefault();
+
+    const zoomFactor = 0.1;
+    const newZoomLevel = e.deltaY < 0 ? zoomLevel + zoomFactor : zoomLevel - zoomFactor;
+
+    // Limit the zoom level to a reasonable range
+    if (newZoomLevel >= 0.1 && newZoomLevel <= 5) {
+      // Adjust the pan offset to keep the content centered
+      const rect = canvasRef.current.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const scaleFactor = newZoomLevel / zoomLevel;
+      setPanOffset({
+        x: mouseX - (mouseX - panOffset.x) * scaleFactor,
+        y: mouseY - (mouseY - panOffset.y) * scaleFactor,
+      });
+
+      setZoomLevel(newZoomLevel);
+    }
+  };
+
+  // Add event listeners for mouse move, mouse up, and wheel
+  useEffect(() => {
+    const canvas = canvasRef.current;
+
+    canvas.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("mouseup", handleMouseUp);
+    canvas.addEventListener("wheel", handleWheel);
+
+    return () => {
+      canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("mouseup", handleMouseUp);
+      canvas.removeEventListener("wheel", handleWheel);
+    };
+  }, [isDraggingCircle, isPanning, zoomLevel]);
+
+  const handleResize = (event, { size }) => {
+    setWindowSize({ width: size.width, height: size.height });
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <Draggable handle=".window-header" nodeRef={draggableRef}>
+      <Resizable
+        width={windowSize.width}
+        height={windowSize.height}
+        onResize={handleResize}
+        resizeHandles={["se"]}
+      >
+        <div
+          ref={draggableRef}
+          className="window"
+          style={{ width: windowSize.width + "px", height: windowSize.height + "px" }}
+        >
+          <div className="window-header">
+            <span>Mind Map Window</span>
+            <button className="close-button" onClick={handleClose}>
+              ×
+            </button>
+          </div>
+          <canvas
+            ref={canvasRef}
+            width={windowSize.width}
+            height={windowSize.height}
+            style={{ border: "1px solid black" }}
+            onMouseDown={handleMouseDown}
+          />
+        </div>
+      </Resizable>
+    </Draggable>
+  );
+}
+
+export default MindMapWindow;
+
+// src/utils/eventBus.js
+const EventBus = {
+    events: {},
+    
+    subscribe(event, callback) {
+      if (!this.events[event]) {
+        this.events[event] = [];
+      }
+      this.events[event].push(callback);
+    },
+  
+    unsubscribe(event, callback) {
+      if (!this.events[event]) return;
+      this.events[event] = this.events[event].filter(cb => cb !== callback);
+    },
+  
+    emit(event, data) {
+      if (!this.events[event]) return;
+      this.events[event].forEach(callback => callback(data));
+    }
+  };
+  
+  export default EventBus;
+  

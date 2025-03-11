@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import "./sidebar.css";
+import "./tool_bar.css";
 
-function Sidebar({ onClose }) {
-  const sidebarRef = useRef(null);
+function ToolBar({ onClose }) {
+  const toolbarRef = useRef(null);
   const isResizing = useRef(false);
   const [width, setWidth] = useState(300);
 
-  // Mouse down on handle
+  // Start resizing
   const handleMouseDown = (e) => {
     e.preventDefault();
     isResizing.current = true;
@@ -14,23 +14,23 @@ function Sidebar({ onClose }) {
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  // Mouse move => resize
+  // Perform resizing
   const handleMouseMove = (e) => {
     if (!isResizing.current) return;
-    const newWidth = e.clientX;
-    if (newWidth >= 150 && newWidth <= 1200) {
+    const windowWidth = window.innerWidth;
+    const newWidth = windowWidth - e.clientX;
+    if (newWidth >= 150 && newWidth <= 600) {
       setWidth(newWidth);
     }
   };
 
-  // Mouse up => stop resizing
+  // End resizing
   const handleMouseUp = () => {
     isResizing.current = false;
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
   };
 
-  // Clean up listeners on unmount
   useEffect(() => {
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
@@ -40,25 +40,25 @@ function Sidebar({ onClose }) {
 
   return (
     <div
-      ref={sidebarRef}
-      className="sidebar"
+      ref={toolbarRef}
+      className="toolbar"
       style={{ width: `${width}px` }}
     >
-      <div className="sidebar-handle">
-        Sidebar
+      <div
+        className="resize-handle-west"
+        onMouseDown={handleMouseDown}
+      />
+      <div className="toolbar-handle">
+        Toolbar
         <button className="close-button" onClick={onClose}>
           ×
         </button>
       </div>
-      <div className="sidebar-content">
-        <p>Sidebar Content</p>
+      <div className="toolbar-content">
+        <p>Toolbar Content</p>
       </div>
-      <div
-        className="resize-handle"
-        onMouseDown={handleMouseDown}
-      />
     </div>
   );
 }
 
-export default Sidebar;
+export default ToolBar;
