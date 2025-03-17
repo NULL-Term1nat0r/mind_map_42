@@ -55,6 +55,7 @@ function ToolBar({ onClose }) {
         </button>
       </div>
       <div className="toolbar-content">
+        
         <p>Toolbar Content</p>
       </div>
     </div>
